@@ -55,7 +55,7 @@ export async function fetchUnread(account: GmailAccount, sinceMs?: number): Prom
 
   const after = sinceMs ?? Date.now() - 60 * 60 * 1000
   const afterSec = Math.floor(after / 1000)
-  const q = `is:unread -label:productivity-processed -label:n8n-processed after:${afterSec}`
+  const q = `is:unread -label:productivity-processed -label:n8n-processed -label:newsletters after:${afterSec}`
 
   const list = await gmail.users.messages.list({ userId: 'me', q, maxResults: 50 })
   const messages = list.data.messages ?? []
