@@ -22,6 +22,8 @@ const STANDING_RULES = `
 - High priority = directly advances a top goal OR hard deadline within 48 hours
 - Low priority = informational, newsletters, FYI-only
 - IGNORE and set action_required=false for recurring calendar invites and reminders (e.g. "RSVP to weekly networking meeting", standing meetings, recurring events)
+- IGNORE and set action_required=false for LinkedIn job recommendation emails (e.g. "Jobs you may be interested in", "New jobs for you", "Your job alert", "Recommended jobs")
+- IGNORE and set action_required=false for marketing and promotional emails (e.g. sales, discounts, product announcements, newsletters, "unsubscribe" footers, no-reply senders, bulk promotional content)
 `.trim()
 
 function today(): string {
