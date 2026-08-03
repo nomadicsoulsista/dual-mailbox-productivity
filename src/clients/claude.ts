@@ -57,7 +57,24 @@ async function jsonCall<T>(system: string, user: string, maxTokens = 2048): Prom
 
 // ── Email classification ──────────────────────────────────
 
-export async function classifyEmail(email: EmailMessage): Promise<EmailClassification> {
+function defaultDueDate(): string {
+  const d = new Date()
+  d.setDate(d.getDate() + 7)
+  return d.toISOString().slice(0, 10)
+}
+
+export async function classifyEmail(
+  email: EmailMessage,
+  recentTasks: Task[] = []
+): Promise<EmailClassification> {
+  const examplesBlock = recentTasks.length > 0
+    ? `\nPast tasks (learn from how these were classified — priority, area, time estimate patterns):\n` +
+      recentTasks
+        .slice(0, 15)
+        .map(t => `- [${t.priority ?? 'Medium'}] [${t.area ?? 'Work'}] ${t.title}${t.timeEstimate ? ` | ${t.timeEstimate}` : ''}${t.dueDate ? ` | due ${t.dueDate}` : ''}`)
+        .join('\n')
+    : ''
+
   const system = `You are a task extraction assistant. Today is ${today()}.
 
 Goals:
@@ -68,7 +85,8 @@ ${STANDING_RULES}
 Only mark action_required=true if the email genuinely requires the user to DO something.
 Infer due dates from: explicit dates, urgency language, dependencies, business context.
 When no date is mentioned: Urgent→today, High→+2 days, Medium→this week, Low→next week.
-
+If truly no due date can be inferred, set due_date to null — a default will be applied.
+${examplesBlock}
 Return ONLY valid JSON matching this shape:
 {
   "action_required": bool,
@@ -112,8 +130,8 @@ ${(email.body || email.snippet).slice(0, 3000)}`
     actionRequired: raw.action_required,
     taskTitle: raw.task_title,
     priority: raw.priority as EmailClassification['priority'],
-    dueDate: raw.due_date,
-    dueConfidence: raw.due_confidence as EmailClassification['dueConfidence'],
+    dueDate: raw.due_date ?? defaultDueDate(),
+    dueConfidence: raw.due_date ? raw.due_confidence as EmailClassification['dueConfidence'] : 'none',
     weekBucket: raw.week_bucket as EmailClassification['weekBucket'],
     area: raw.area as EmailClassification['area'],
     workBlock: raw.work_block as EmailClassification['workBlock'],

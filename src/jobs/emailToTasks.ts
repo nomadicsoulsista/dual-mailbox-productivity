@@ -18,9 +18,11 @@ export async function runEmailToTasks(): Promise<void> {
   console.log(`[emailToTasks] ${allEmails.length} unread emails`)
   if (!allEmails.length) return
 
+  const recentTasks = await notion.getAllActiveTasks()
+
   for (const email of allEmails) {
     try {
-      const result = await claude.classifyEmail(email)
+      const result = await claude.classifyEmail(email, recentTasks)
 
       if (result.actionRequired) {
         const notes = [
